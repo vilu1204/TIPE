@@ -11,6 +11,7 @@ epsilon = 10**-2
 eta = 10**-2
 mut_rate = 0.3
 
+# calcul l'erreur comme distance au carrée entre la sortie et la décision imposée
 def error(choice,sol,test=False): 
     x1 = choice[0] / sqrt(choice[0]**2 + choice[1]**2)
     y1 = choice[1] / sqrt(choice[0]**2 + choice[1]**2)
@@ -20,26 +21,23 @@ def error(choice,sol,test=False):
         print(x1,y1,"/",x2,y2)
     return sqrt((x1-x2)**2 + (y1-y2)**2)
     
-
-
+#fonction d'activation
 def activation_function(x):
     return np.arctan(x)/(pi/2)
 
-
-
-
+#classe qui définit un poisson
 class fish :
     
     def __init__(self, Id, batch_ref, species, preys, predators, NN, x, y, speed, view, size):
         self.Id = Id # identifiant du poisson, facilite le traitement
         self.species = species # espece, rang dans l'échelle alimentaire
         self.preys = preys # liste de booleens donnant les especes de proies 
-        self.predators = predators #liste de booleens donnant les especes predatrices
+        self.predators = predators # liste de booleens donnant les especes predatrices
         self.NN = NN # réseau de neurones
-        self.x = x
+        self.x = x # positions x et y
         self.y = y
         self.batch_ref = batch_ref #batch du poisson
-        self.speed = speed #vitesse
+        self.speed = speed # vitesse
         self.view = view # distance a laquelle le poisson voit 
         self.size = size # taille du poisson sur l'affichage graphique - rayon du cercle qui le représente / portee a laquelle le poisson peut manger les autres
         self.alive = True
@@ -52,8 +50,6 @@ class fish :
         self.alive = False
         self.death_turn = self.batch_ref.turn
     
-    
-    
     def fish_search(self,d0): #renvoie la liste des poisson proches a moins de d0
         sight = []
         for f in self.batch_ref.list_fishes:
@@ -63,20 +59,21 @@ class fish :
     
     
     def eat_around(self): #tue / mange les proies a portee 
-        reach = self.fish_search(2*self.size)
+        reach = self.fish_search(2*self.size) # peut manger les poissons prochent à deux fois sa taille
         for f in reach :
-            if self.preys[f.species] :
+            if self.preys[f.species] : # si l'espece de la cible est dans la liste des proies 
                 f.kill()
                 self.eaten +=1
     
-    
+    # mouvement, Dx = fraction du mouvement en x
     def move(self, Dx, Dy):
         if self.alive :
             self.eat_around() # on appelle la fonction avant le mouvement au cas où une proie s'est approchée dans son mouvement
+                              # car les poissons se déplacent chacun leur tour
             if Dx != 0.0 and Dy != 0.0:
                 x0 = self.x + self.speed* Dx 
                 y0 = self.y + self.speed* Dy 
-                if x0 < 0:
+                if x0 < 0: # ajustements pour rester dans la fenetre
                     x0 = 0
                 elif x0 > self.batch_ref.dim: 
                     x0 = self.batch_ref.dim
@@ -86,7 +83,7 @@ class fish :
                     y0 = self.batch_ref.dim
                 self.x = x0
                 self.y = y0
-                self.eat_around()
+                self.eat_around() # on le refait manger
 
     
     
@@ -94,11 +91,12 @@ class fish :
         self.eat_around() # on appelle la fonction avant le mouvement au cas où une proie s'est approchée dans son mouvement
         self.move(random()-.5,random()-.5)
     
-    
+    # inputs du réseau de neuronnes
+    # 1ers args de res ?
     def gather_input_data(self):
         x0, y0 = self.x, self.y
         dist = self.batch_ref.dim
-        res = [x0/dist, (dist - x0)/dist, y0/dist, (dist - y0)/dist]
+        res = [x0/dist, (dist - x0)/dist, y0/dist, (dist - y0)/dist] # ?
         sight = self.fish_search(self.view)
         for f in self.batch_ref.list_fishes :
             if f.species != self.species:
@@ -108,7 +106,7 @@ class fish :
         res.append(.1) #biais
         return np.array(res)
     
-    
+    # data ?
     def decide(self,data):
         res = data
         for layer in self.NN:
@@ -122,15 +120,17 @@ class fish :
         tmp = self.decide(self.gather_input_data())
         self.move(tmp[0], tmp[1])
         
-    
+    # entrainement du reseau d'un prédateur
+    # prey : situations d'entrainement vs proies
+    # pred : situations d'enatrainement vs predateurs
     def train(self, prey, pred):
         for situation in prey:
             for f in self.batch_ref.list_fishes :
                 if self.preys[f.species]:
-                    data = np.array([0] * self.batch_ref.NN_format[0])
+                    data = np.array([0] * self.batch_ref.NN_format[0]) 
                     data[-1] = 1
-                    if f.species> self.species:
-                        diff = self.batch_ref.nb_by_species[self.species]
+                    if f.species> self.species: 
+                        diff = self.batch_ref.nb_by_species[self.species] # diff = ?
                     else :
                         diff = 0
                     k = (f.Id - diff)*3 + 4 
@@ -142,12 +142,12 @@ class fish :
                             for j in range(len(i)):
                                 i[j] += epsilon 
                                 Err1 = error(self.decide(data), situation[1])
-                                i[j] -= 2*epsilon 
+                                i[j] -= 2*epsilon # pour calculer la derivee de l'erreur en fonction du poids j
                                 Err2 = error(self.decide(data), situation[1])
-                                i[j] += epsilon
+                                i[j] += epsilon # on remet à la valeur initiale
                                 dErr = (Err1 - Err2)/(2*epsilon)
-                                i[j] -= eta*dErr
-        for situation in pred:
+                                i[j] -= eta*dErr # changement du coef - instantanné ?
+        for situation in pred: # meme combat que prey
             for f in self.batch_ref.list_fishes :
                 if self.predators[f.species]:
                     data = np.array([0] * self.batch_ref.NN_format[0])
@@ -237,7 +237,7 @@ class batch :
         # self.field = [[[] for i in range(dim+1)] for j in range(dim+1)] # terrain , liste des poissons sur la case par ID, on a dim+1 cases pour contenir l'intervalle [0,dim]
         self.preying = preying # matrice de booleens determinant si une espece peut en manger une autre
         self.turn = 0
-        self.NN_format = NN_format
+        self.NN_format = NN_format # ?
         self.children = children
         self.gen = 0
         self.turns_by_gen = turns_by_gen
@@ -249,7 +249,7 @@ class batch :
         for i in range(self.nb_species) :
             for j in range (self.nb_by_species[i]):
                 x , y = randint(i*self.dim//self.nb_species,(i+1)*self.dim//self.nb_species-1) , randint(i*self.dim//self.nb_species,(i+1)*self.dim//self.nb_species-1) #initialisation des coordonnees
-                preys = self.preying[i][:]
+                preys = self.preying[i][:] 
                 predators = [self.preying[k][i] for k in range(self.nb_species)]
                 Network = [np.array([[2*random()-1 for i in range(self.NN_format[k+1])] for j in range(self.NN_format[k])]) for k in range(len(self.NN_format)-1)]
                 self.list_fishes[Id] = fish(Id, self, i, preys, predators, Network, x, y, self.speeds[i], self.views[i], self.sizes[i])
