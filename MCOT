@@ -10,19 +10,18 @@ supervisé
 
 
 Bibliographie commentée
-Une première approche, assez classique, est d'entraîner les poissons avec un algorithme de rétroprogation du gradient. Afin de se familiariser
-avec les concepts d'apprentissage supervisé, d'ensemble de données (data set) et de réseau de neurones, un première lecture du livre d'Aurélien Géron [1]
+Afin de résoudre efficacement un problème pour lequel aucun algorithme de complexité satisfaisante n’est accessible, ou comme ici si le choix idéal n’est pas connu, il est souvent nécessaire de procéder à une résolution approchée par un algorithme heuristique. Lorsque le problème peut se réduire à la détermination d’une fonction de Rn dans Rk, on peut la chercher sous la forme d’un réseau de neurones, une fonction à paramètre conçue selon une structure nspirée des neurones biologiques. Afin de se familiariser avec la structure de réseau de neurones, la manipulation des ensembles de données (ou « data set ») et le concept d’apprentissage supervisé , un première lecture du livre d'Aurélien Géron [1]
 fut utile.
 
-Une première implémentation de l'algorithme a conduit à différents problèmes non soupçonnés à premier abord, tel les problèmes de convergence
-dans l'algorithme du gradient, où le calcul de dérivées partielles d'une fonction à variables multiples. Des solutions simples et efficaces
-ont été trouvé avec [2] et avec [1].
+Une première approche, assez classique, est d'entraîner les poissons avec un algorithme de descente de gradient. On cherche alors à ameliorer progressivement la prise de decision par le réseau dans un nombre limité de situations. Si ces dernières sont suffisamment exhaustives, on peut alors s’attendre à ce que la prise de décision soit efficace dans tous les cas. 
+La première implémentation de l'algorithme a conduit à différents problèmes non soupçonnés à premier abord, tel les problèmes de convergence dans l'algorithme du gradient, où le calcul de dérivées partielles d'une fonction à variables multiples. Des solutions simples et efficaces ont été trouvé avec [2] et avec [1].
 
-Différentes variantes de l'algorithme existent, et certaines sont plus adaptées que d'autres, notamment dans le choix de la fonction de 
-coût, qui s'est basé sur [1] et [3]. 
+Différentes variantes de l'algorithme existent , et certaines sont plus adaptées que d'autres en fonction du problème étudié, notamment dans le choix de la fonction de coût (la fonction utilisée pour lors de l’entraînement pour déterminer qualitativement si un choix est bon) , qui s'est basé sur [1] et [3]. Différentes méthodes de calcul de la variation à appliquer aux coefficients sont également envisageables, avec une influence importante sur la probabilité et la vitesse de la convergence vers un optimum global dans l’espace des coefficients possibles. L’étude de l'optimisation de la convergence dans la méthode du gradient et l’introduction des concepts théoriques utilisés à cet effet ont été menés avec  [4] et [5].
 
-L'introduction de concepts théoriques et l'étude de l'optimisation de la convergence dans la méthode du gradient ont été mené avec  [4] et 
-[5].
+Cependant, même lorsque les bons choix sont faits pour assurer la convergence de la méthode, l’algorithme du gradient n’est pas suffisant pour satisfaire tous les objectifs fixés : puisqu’il s’agit exclusivement d’apprentissage supervisé, l’efficacité du résultat est tributaire d’un bon choix des exemples utilisés lors de l’entraînement. Ainsi la qualité du réseau obtenu est limitée par l’exhaustivité des exemples choisis et la pertinence des attendus associés à ces derniers. En particulier, dans un cas comme notre modèle ou le bon choix est incertain dans certaines situations (par exemple, comment tenir compte d’un poisson n’étant ni prédateur direct ni proie directe?), la stratégie obtenue en appliquant l’algorithme du gradient est potentiellement incomplète.
+Pour résoudre ce problème, il est possible de se tourner vers un algorithme évolutionniste : on fait alors évoluer la population en situation « réelle », puis on évalue leur résultats et on garde les meilleurs en les modifiant légèrement, selon le principe de la sélection naturelle. Pour mettre en œuvre un tel algorithme, d’autres études et  choix sont à faire, en particulier la fonction dite de fitness qui évalue les résultats, qui ont été faits grâce à [1] 
+
+
 
 [1] Hands-on Machine Learning with Scikit-Learn & Tensor Flow
 [2] https://en.wikipedia.org/wiki/Stochastic_gradient_descent
@@ -36,13 +35,16 @@ Est-il possible de rendre des poissons intelligents de manière supervisé par r
 Un apprentissage non supervisé reposant sur un algorithme génétique peut-il parvenir au même résultat ?
 Comment optimiser la convergence dans l'algorithme du gradient ?
 
-Objectif du TIPE
+Objectif du TIPE (Victor)
 - Se familiariser avec des méthodes classiques de machine learning pour simuler des poissons en 2 dimensions. 
 - Mettre un oeuvre un apprentissage supervisé avec la rétropropagation du gradient. 
 - Etudier les différentes approches possibles et déterminer celle qui est la plus adaptée au problème.
 - Mettre en oeuvre un algorithme génétique pour réaliser un apprentissage non supervisé. 
 
-
+Objectifs (Alexandre)
+- Creer un modèle d'interaction permettant l'établissement de stratégies efficaces pour les individus 
+- Mettre en place un algorithme d'apprentissage supervisé afin d'amener le réseau à une prise de décision efficace et étudier son utilisation dans un cas général théorique 
+- parvenir à l'établissement autonome d'une stratégie satisfaisante grâce à un algorithme d'apprentissage non supervisé 
 
 
 
